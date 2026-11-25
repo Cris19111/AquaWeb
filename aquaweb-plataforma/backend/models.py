@@ -18,6 +18,7 @@ from sqlalchemy import (
     String,
     Text,
     UniqueConstraint,
+    Uuid,
 )
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -182,7 +183,7 @@ class OrdenControl(Base):
 
     id: Mapped[int] = mapped_column(BigIntPK, primary_key=True, autoincrement=True)
     dispositivo_id: Mapped[int] = mapped_column(ForeignKey("dispositivos.id", ondelete="CASCADE"), nullable=False)
-    command_id: Mapped[str] = mapped_column(String(36), nullable=False, unique=True)
+    command_id: Mapped[str] = mapped_column(Uuid(as_uuid=False), nullable=False, unique=True)
     tipo_orden: Mapped[str] = mapped_column(String(40), nullable=False)
     payload_json: Mapped[dict[str, Any]] = mapped_column(JSONType, nullable=False)
     estado: Mapped[str] = mapped_column(String(20), nullable=False, default="ENVIADA")

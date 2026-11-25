@@ -43,25 +43,43 @@ export default function App() {
     return () => clearInterval(poll);
   }, [refreshOverview]);
 
-  // Conexión WebSocket en tiempo real (/ws/live) cuando no está en Modo Demo
+  // Conexión WebSocket en tiempo real (/ws/live) con reconexión automática
   useEffect(() => {
     if (config.demoMode) {
       setWsConnected(false);
       return;
     }
     let ws: WebSocket | null = null;
-    try {
-      ws = new WebSocket(buildWsUrl(config.apiUrl));
-      ws.onopen = () => setWsConnected(true);
-      ws.onclose = () => setWsConnected(false);
-      ws.onerror = () => setWsConnected(false);
-      ws.onmessage = () => {
-        refreshOverview();
-      };
-    } catch {
-      setWsConnected(false);
-    }
+    let reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+    let unmounted = false;
+
+    const connectWs = () => {
+      if (unmounted) return;
+      try {
+        ws = new WebSocket(buildWsUrl(config.apiUrl));
+        ws.onopen = () => setWsConnected(true);
+        ws.onclose = () => {
+          setWsConnected(false);
+          if (!unmounted) {
+            reconnectTimer = setTimeout(connectWs, 3000);
+          }
+        };
+        ws.onerror = () => {
+          setWsConnected(false);
+          ws?.close();
+        };
+        ws.onmessage = () => {
+          refreshOverview();
+        };
+      } catch {
+        setWsConnected(false);
+      }
+    };
+
+    connectWs();
     return () => {
+      unmounted = true;
+      if (reconnectTimer) clearTimeout(reconnectTimer);
       ws?.close();
     };
   }, [config.apiUrl, config.demoMode, refreshOverview]);

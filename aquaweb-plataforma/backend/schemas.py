@@ -205,6 +205,11 @@ class CommandOut(BaseModel):
     creada_en: datetime
     actualizada_en: datetime
 
+    @field_validator("command_id", mode="before")
+    @classmethod
+    def coerce_command_id(cls, v: Any) -> str:
+        return str(v)
+
 
 class RejectedMessageOut(BaseModel):
     model_config = ConfigDict(from_attributes=True)

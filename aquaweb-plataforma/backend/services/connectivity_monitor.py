@@ -106,6 +106,19 @@ class ConnectivityMonitor:
                         else "Nodo ESP32 conectado y publicado como ONLINE."
                     )
                 else:
+                    if retain and device.ultimo_latido is not None:
+                        latido = (
+                            device.ultimo_latido
+                            if device.ultimo_latido.tzinfo is not None
+                            else device.ultimo_latido.replace(tzinfo=timezone.utc)
+                        )
+                        umbral = self.silence_multiplier * device.intervalo_pub_seg
+                        if (ts - latido).total_seconds() < umbral:
+                            logger.info(
+                                "Ignorando OFFLINE retenido obsoleto para %s (latido reciente).",
+                                device_id_mqtt,
+                            )
+                            return None
                     detalle = "Desconexión abrupta detectada vía Last Will (LWT OFFLINE)."
                 self.transition_device_state(db, device, estado, detalle, now=ts)
                 db.commit()
