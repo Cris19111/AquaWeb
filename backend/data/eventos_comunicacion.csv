@@ -1,5 +1,6 @@
 fecha,tipo,gravedad,detalle
-2026-11-19T04:49:35,ONLINE,INFO,Dispositivo reportó ONLINE (en vivo) en utp/ds8/grupoX/aquaweb/estado.
-2026-11-19T04:50:06,SIN_DATOS,ADVERTENCIA,Sin telemetría durante 20.6 s (umbral máximo: 20 s).
-2026-11-19T04:50:09,ONLINE,INFO,Telemetría reanudada tras periodo de silencio.
-2026-11-19T04:50:11,OFFLINE,CRITICO,Dispositivo desconectado (LWT / desconexión) en utp/ds8/grupoX/aquaweb/estado.
+2026-11-25T04:31:13,ONLINE,INFO,Dispositivo reportó ONLINE (en vivo) en utp/ds8/grupo/aquaweb/estado.
+2026-11-25T04:34:18,SIN_DATOS,ADVERTENCIA,Sin telemetría durante 20.6 s (umbral máximo: 20 s).
+2026-11-25T04:34:45,ONLINE,INFO,Telemetría reanudada tras periodo de silencio.
+2026-11-25T04:35:26,SIN_DATOS,ADVERTENCIA,Sin telemetría durante 20.8 s (umbral máximo: 20 s).
+2026-11-25T04:35:27,OFFLINE,CRITICO,Dispositivo desconectado (LWT / desconexión) en utp/ds8/grupo/aquaweb/estado.

@@ -310,7 +310,7 @@ def construir_documento() -> Path:
     agregar_imagen_con_pie(
         doc,
         ASSETS_DIR / "diagrama_flujo.png",
-        ancho_cm=9.4,
+        ancho_cm=8.4,
         pie="Figura 1. Flujo de datos MQTT del Avance 3 (ESP32, broker, receptor, monitor y emisor CLI).",
     )
 
@@ -324,51 +324,51 @@ def construir_documento() -> Path:
         [
             [
                 "1. Normal",
-                "Receptor y monitor en broker.hivemq.com con ráfaga desde emisor CLI.",
-                "ONLINE retenido y 4 filas válidas guardadas en CSV sin duplicar estado.",
-                "Ejecutado (CLI → Backend)",
+                "ESP32 en Wokwi + receptor y monitor en broker.hivemq.com.",
+                "ONLINE retenido y 38 lecturas reales (pH 7.53, Temp 26.0 °C) en CSV.",
+                "Ejecutado en vivo (Wokwi + Backend)",
             ],
             [
                 "2. Orden válida",
-                "Emisor CLI envía MANUAL/AUTO y umbrales 7.0–8.5 a .../ordenes.",
-                "Tráfico en broker confirmado; validar_y_aplicar_orden() actualiza GPIO 2.",
-                "CLI → Broker + Verificado en firmware",
+                "Emisor CLI envía MANUAL/actuador=1 y umbrales 7.0–8.5 a Wokwi.",
+                "Wokwi imprimió [ORDEN APLICADA], encendió LED rojo GPIO 2 y publicó Modo=MANUAL.",
+                "Ejecutado en vivo (Wokwi + Backend)",
             ],
             [
                 "3. Orden inválida",
                 "Emisor CLI envía JSON roto, modo TURBO, actuador 9 y min>max.",
-                "4 órdenes rechazadas ([ORDEN RECHAZADA]) sin alterar estado_sistema.",
-                "CLI → Broker + Verificado en firmware",
+                "Wokwi imprimió 4 [ORDEN RECHAZADA] manteniendo estado y umbrales intactos.",
+                "Ejecutado en vivo (Wokwi + Backend)",
             ],
             [
                 "4. Caída red / backoff",
-                "Revisión de try/except OSError y backoff 2..60 s (provocable con host inválido).",
-                "Progresión 2,4,8,16,32,60 s no bloqueante manteniendo muestreo e IRQ GPIO 4.",
-                "Verificado en firmware / razonado",
+                "Timeout TCP observado en Wokwi + revisión try/except OSError.",
+                "Progresión real [2,4,8,16,32,60] s no bloqueante manteniendo control local.",
+                "Ejecutado en vivo (Wokwi) + firmware",
             ],
             [
                 "5. Dato inválido",
                 "Emisor CLI inyecta 5 tramas corruptas (pH 19.5, Temp 95, sin campos).",
-                "Receptor imprime 5 descartes, sigue activo y no contamina telemetria_valida.csv.",
+                "Receptor imprime 5 descartes, sigue estable recibiendo Wokwi y CSV limpio.",
                 "Ejecutado (CLI → Backend)",
             ],
             [
                 "6. Reinicio nodo",
-                "Inspección de main() -> conectar_mqtt() en wokwi/main.py.",
-                "Registra LWT QoS 1 antes de connect(), suscribe órdenes y publica ONLINE.",
-                "Verificado en firmware / razonado",
+                "Arranque de main() -> conectar_mqtt() en ESP32 Wokwi.",
+                "Registra LWT QoS 1, conecta, suscribe órdenes y publica ONLINE retenido.",
+                "Ejecutado en vivo (Wokwi) + firmware",
             ],
             [
                 "7. Silencio (SIN_DATOS)",
-                "Pausa de 23 s (>20 s). En ESP32 equivale a simular_silencio con ping() cada 7 s.",
+                "Orden simular_silencio:true a Wokwi (PINGREQ activo) y luego false.",
                 "Monitor registra SIN_DATOS a los 20.6 s y vuelve a ONLINE al reanudar.",
-                "Ejecutado (CLI → Backend) + firmware",
+                "Ejecutado en vivo (Wokwi + Backend)",
             ],
             [
                 "8. Detención (OFFLINE)",
-                "Recepción OFFLINE en .../estado. En Wokwi lo dispara el broker vía LWT al detener simulación.",
-                "Transición #4 ONLINE -> OFFLINE (CRITICO); 4 filas totales en eventos CSV.",
-                "Ejecutado (CLI → Backend) + LWT QoS 1",
+                "Presionar Stop Simulation en Wokwi sin enviar DISCONNECT.",
+                "Broker dispara LWT OFFLINE real tras keepalive; monitor registra CRITICO.",
+                "Ejecutado en vivo (Wokwi + LWT real)",
             ],
         ],
         [2.7, 4.4, 5.8, 3.6],
@@ -383,8 +383,8 @@ def construir_documento() -> Path:
         agregar_imagen_con_pie(
             doc,
             captura_wokwi_real,
-            ancho_cm=10.2,
-            pie="Figura 2. Ejecución real en Wokwi: telemetría ESP32, orden válida aplicada (LED rojo) y orden inválida rechazada.",
+            ancho_cm=6.8,
+            pie="Figura 2. Ejecución real en Wokwi: circuito con LED rojo (GPIO 2) y azul (GPIO 5) encendidos, [ORDEN APLICADA] y [TELEMETRIA TX].",
         )
     else:
         agregar_parrafo(
@@ -398,15 +398,15 @@ def construir_documento() -> Path:
     agregar_imagen_con_pie(
         doc,
         ASSETS_DIR / "captura_receptor.png",
-        ancho_cm=8.2,
+        ancho_cm=6.9,
         pie="Figura 2. Consola de receptor_mqtt.py: 4 lecturas válidas en CSV y 5 tramas inválidas descartadas del emisor CLI."
         if not captura_wokwi_real.exists()
-        else "Figura 3. Consola de receptor_mqtt.py: lecturas válidas en CSV y tramas inválidas descartadas.",
+        else "Figura 3. Consola de receptor_mqtt.py: lecturas válidas en CSV y 5 tramas inválidas descartadas.",
     )
     agregar_imagen_con_pie(
         doc,
         ASSETS_DIR / "captura_monitor.png",
-        ancho_cm=8.5,
+        ancho_cm=6.9,
         pie="Figura 3. Consola de monitor_estado.py y eventos_comunicacion.csv: transiciones ONLINE, SIN_DATOS y OFFLINE."
         if not captura_wokwi_real.exists()
         else "Figura 4. Consola de monitor_estado.py y eventos_comunicacion.csv: transiciones ONLINE, SIN_DATOS y OFFLINE (LWT real).",
@@ -417,10 +417,10 @@ def construir_documento() -> Path:
     # ------------------------------------------------------------------
     agregar_encabezado_seccion(doc, "7. Dificultades Encontradas y Soluciones")
     dificultades = [
-        "1. Atenuación ADC en MicroPython v1.20+: Se configuró explícitamente adc.atten(ADC.ATTN_11DB) (nunca ATTN_11V) y 12 bits para cubrir 0–3.3 V sin saturación.",
-        "2. Migración a paho-mqtt v2: Se adoptó CallbackAPIVersion.VERSION2 y firmas actualizadas de on_connect/on_disconnect en los tres scripts Python.",
-        "3. Red no bloqueante y sockets en umqtt: Se usaron temporizadores ticks_ms()/ticks_diff() con backoff 2–60 s para no bloquear sensores ni la IRQ GPIO 4.",
-        "4. Validación estricta y rigor QoS: Se excluyeron booleanos y NaN/Inf en JSON y se alineó la documentación con el QoS real implementado (0 en telemetría, 1 en estado/LWT).",
+        "1. Atenuación ADC en MicroPython v1.20+: Se configuró adc.atten(ADC.ATTN_11DB) (nunca ATTN_11V) y 12 bits para cubrir 0–3.3 V sin saturación.",
+        "2. Cabecera CONNECT en umqtt_simple.py: Faltaba el byte MSB 0x00 en la longitud del protocolo (9 bytes en vez de 10), causando ETIMEDOUT; corregido a b\"\\x00\\x04MQTT\\x04\\x02\\0\\0\" con CONNACK rc=0.",
+        "3. Migración a paho-mqtt v2: Se adoptó CallbackAPIVersion.VERSION2 y firmas actualizadas de on_connect/on_disconnect en los scripts Python.",
+        "4. Red no bloqueante y validación JSON: Se usaron temporizadores ticks_ms() con backoff 2–60 s, exclusión de bool/NaN y QoS exacto (0 telemetría, 1 estado/LWT).",
     ]
     for item in dificultades:
         agregar_parrafo(doc, item, space_after=1)

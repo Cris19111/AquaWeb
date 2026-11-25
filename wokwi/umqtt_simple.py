@@ -136,26 +136,26 @@ class MQTTClient:
             self.sock = ussl.wrap_socket(self.sock, **self.ssl_params)
 
         premsg = bytearray(b"\x10\0\0\0\0\0")
-        msg = bytearray(b"\x04MQTT\x04\x02\0\0")
+        msg = bytearray(b"\x00\x04MQTT\x04\x02\0\0")
 
         sz = 10 + 2 + len(self.client_id)
-        msg[6] = clean_session << 1
+        msg[7] = clean_session << 1
         if self.user is not None:
             sz += 2 + len(self.user)
-            msg[6] |= 0x80
+            msg[7] |= 0x80
             if self.pswd is not None:
                 sz += 2 + len(self.pswd)
-                msg[6] |= 0x40
+                msg[7] |= 0x40
 
         if self.keepalive:
             assert self.keepalive < 65536
-            msg[7] |= self.keepalive >> 8
-            msg[8] |= self.keepalive & 0x00FF
+            msg[8] |= self.keepalive >> 8
+            msg[9] |= self.keepalive & 0x00FF
 
         if self.lw_topic is not None:
             sz += 2 + len(self.lw_topic) + 2 + len(self.lw_msg)
-            msg[6] |= 0x04 | ((self.lw_qos & 0x01) << 3) | ((self.lw_qos & 0x02) << 3)
-            msg[6] |= (1 if self.lw_retain else 0) << 5
+            msg[7] |= 0x04 | ((self.lw_qos & 0x01) << 3) | ((self.lw_qos & 0x02) << 3)
+            msg[7] |= (1 if self.lw_retain else 0) << 5
 
         i = 1
         while sz > 0x7F:
