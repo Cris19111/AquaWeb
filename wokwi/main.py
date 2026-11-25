@@ -280,24 +280,45 @@ def on_mqtt_message(topic, msg):
 
 
 def construir_client_id():
-    """Genera un identificador único basado en la MAC del ESP32."""
+    """Genera un identificador único basado en la MAC del ESP32 y ticks."""
     uid = ubinascii.hexlify(machine.unique_id()).decode("utf-8")
-    return "aquaweb-esp32-{}-{}".format(GRUPO, uid[-6:])
+    return "aquaweb-esp32-{}-{}-{}".format(GRUPO, uid[-6:], time.ticks_ms() % 10000)
 
 
-def conectar_wifi(wlan, timeout_ms=8000):
-    """Intenta conectar la interfaz Wi-Fi STA sin bloquear indefinidamente."""
-    if not wlan.active():
-        wlan.active(True)
+def conectar_wifi(wlan, timeout_ms=15000):
+    """Reinicia limpiamente el radio STA y conecta a Wi-Fi sin bloquear."""
     if wlan.isconnected():
         return True
 
+    # Reinicio limpio de la interfaz STA (evita Wifi Internal Error en 2do arranque Wokwi)
+    try:
+        wlan.disconnect()
+    except Exception:
+        pass
+    try:
+        wlan.active(False)
+        time.sleep_ms(200)
+    except Exception:
+        pass
+    wlan.active(True)
+    time.sleep_ms(100)
+
     print("[WIFI] Conectando a '{}'...".format(WIFI_SSID))
-    wlan.connect(WIFI_SSID, WIFI_PASSWORD)
+    try:
+        wlan.connect(WIFI_SSID, WIFI_PASSWORD)
+    except OSError as err:
+        print("[WIFI ERROR] Error al iniciar enlace:", err)
+        return False
+
     inicio = time.ticks_ms()
     while not wlan.isconnected():
         if time.ticks_diff(time.ticks_ms(), inicio) >= timeout_ms:
             print("[WIFI ERROR] Tiempo de espera agotado conectando a Wi-Fi.")
+            try:
+                wlan.disconnect()
+                wlan.active(False)
+            except Exception:
+                pass
             return False
         # Parpadeo corto durante intento de enlace
         led_conexion.value(1 - led_conexion.value())

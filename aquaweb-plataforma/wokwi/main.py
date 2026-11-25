@@ -329,20 +329,40 @@ def on_mqtt_message(topic, msg):
 
 def construir_client_id():
     uid = ubinascii.hexlify(machine.unique_id()).decode("utf-8")
-    return "aquaweb-{}-{}-{}".format(GRUPO, DEVICE_ID, uid[-6:])
+    return "aquaweb-{}-{}-{}-{}".format(GRUPO, DEVICE_ID, uid[-6:], time.ticks_ms() % 10000)
 
 
-def conectar_wifi(wlan, timeout_ms=8000):
-    if not wlan.active():
-        wlan.active(True)
+def conectar_wifi(wlan, timeout_ms=15000):
     if wlan.isconnected():
         return True
+    try:
+        wlan.disconnect()
+    except Exception:
+        pass
+    try:
+        wlan.active(False)
+        time.sleep_ms(200)
+    except Exception:
+        pass
+    wlan.active(True)
+    time.sleep_ms(100)
+
     print("[WIFI] Conectando a '{}'...".format(WIFI_SSID))
-    wlan.connect(WIFI_SSID, WIFI_PASSWORD)
+    try:
+        wlan.connect(WIFI_SSID, WIFI_PASSWORD)
+    except OSError as err:
+        print("[WIFI ERROR] Error al iniciar enlace:", err)
+        return False
+
     inicio = time.ticks_ms()
     while not wlan.isconnected():
         if time.ticks_diff(time.ticks_ms(), inicio) >= timeout_ms:
             print("[WIFI ERROR] Tiempo agotado.")
+            try:
+                wlan.disconnect()
+                wlan.active(False)
+            except Exception:
+                pass
             return False
         led_conexion.value(1 - led_conexion.value())
         time.sleep_ms(150)
