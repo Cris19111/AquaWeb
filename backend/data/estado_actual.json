@@ -1,0 +1,31 @@
+{
+  "proyecto": "AquaWeb IoT",
+  "avance": "Avance 2 - Procesamiento de Datos",
+  "ciclo": 10,
+  "timestamp": "2026-11-19T09:18:03+00:00",
+  "sensores": {
+    "ph": {
+      "valor": 7.9,
+      "unidad": "pH",
+      "rango_optimo": [
+        6.5,
+        9.5
+      ],
+      "estado": "OPTIMO"
+    },
+    "temperatura_c": {
+      "valor": 27.2,
+      "unidad": "°C",
+      "rango_optimo": [
+        20.0,
+        30.0
+      ],
+      "estado": "OPTIMO"
+    }
+  },
+  "estado_general": "OPTIMO",
+  "actuadores": {
+    "bomba_aireacion": false
+  },
+  "eventos_disparados": []
+}

@@ -1,0 +1,102 @@
+erDiagram
+    ESTANQUES ||--o{ DISPOSITIVOS : "alberga"
+    ESTANQUES ||--o{ UMBRALES_PARAMETROS : "define"
+    DISPOSITIVOS ||--o{ LECTURAS_TELEMETRIA : "emite"
+    DISPOSITIVOS ||--o{ ALERTAS : "genera"
+    LECTURAS_TELEMETRIA ||--o{ ALERTAS : "origina"
+    DISPOSITIVOS ||--o{ EVENTOS_COMUNICACION : "registra"
+    DISPOSITIVOS ||--o{ ORDENES_CONTROL : "recibe"
+
+    ESTANQUES {
+        SERIAL id PK
+        VARCHAR nombre
+        VARCHAR ubicacion
+        VARCHAR especie
+        NUMERIC volumen_m3
+        BOOLEAN activo
+        TIMESTAMPTZ creado_en
+    }
+
+    DISPOSITIVOS {
+        SERIAL id PK
+        INTEGER estanque_id FK
+        VARCHAR client_id_mqtt UK
+        VARCHAR nombre
+        VARCHAR estado_conexion "ONLINE | SIN_DATOS | OFFLINE"
+        VARCHAR modo_operacion "AUTO | MANUAL"
+        BOOLEAN actuador_activo
+        INTEGER intervalo_pub_seg
+        TIMESTAMPTZ ultimo_latido
+        TIMESTAMPTZ creado_en
+    }
+
+    UMBRALES_PARAMETROS {
+        SERIAL id PK
+        INTEGER estanque_id FK
+        VARCHAR parametro "ph | temperatura | tds | ec | salinidad"
+        NUMERIC min_optimo
+        NUMERIC max_optimo
+        NUMERIC min_fisico
+        NUMERIC max_fisico
+        VARCHAR unidad
+        TIMESTAMPTZ actualizado_en
+    }
+
+    LECTURAS_TELEMETRIA {
+        BIGSERIAL id PK
+        INTEGER dispositivo_id FK
+        NUMERIC ph
+        NUMERIC temperatura_c
+        NUMERIC tds_ppm
+        NUMERIC ec_ppm
+        NUMERIC salinidad_ppm
+        BOOLEAN actuador_estado
+        VARCHAR modo_operacion "AUTO | MANUAL"
+        VARCHAR calidad_dato "VALIDA | SOSPECHOSA"
+        TIMESTAMPTZ timestamp_dispositivo
+        TIMESTAMPTZ recibido_en
+    }
+
+    ALERTAS {
+        BIGSERIAL id PK
+        INTEGER dispositivo_id FK
+        BIGINT lectura_id FK
+        VARCHAR parametro
+        NUMERIC valor_detectado
+        VARCHAR umbral_infringido
+        VARCHAR severidad "ADVERTENCIA | CRITICA"
+        TEXT mensaje
+        VARCHAR estado "ACTIVA | RECONOCIDA | RESUELTA"
+        TIMESTAMPTZ creada_en
+        TIMESTAMPTZ resuelta_en
+    }
+
+    EVENTOS_COMUNICACION {
+        BIGSERIAL id PK
+        INTEGER dispositivo_id FK
+        VARCHAR estado_anterior
+        VARCHAR estado_nuevo
+        VARCHAR gravedad "INFO | WARNING | CRITICAL"
+        TEXT detalle
+        TIMESTAMPTZ registrado_en
+    }
+
+    ORDENES_CONTROL {
+        BIGSERIAL id PK
+        INTEGER dispositivo_id FK
+        UUID command_id UK
+        VARCHAR tipo_orden
+        JSONB payload_json
+        VARCHAR estado "ENVIADA | APLICADA | RECHAZADA | EXPIRADA"
+        TEXT detalle_respuesta
+        TIMESTAMPTZ creada_en
+        TIMESTAMPTZ actualizada_en
+    }
+
+    MENSAJES_RECHAZADOS {
+        BIGSERIAL id PK
+        VARCHAR topico
+        TEXT payload_crudo
+        TEXT motivo_rechazo
+        TIMESTAMPTZ recibido_en
+    }

@@ -1,0 +1,54 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    container_name: aquaweb-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-aquaweb_iot}
+      POSTGRES_USER: ${POSTGRES_USER:-aquaweb}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-aquaweb_secret_2026}
+      TZ: America/Panama
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      - aquaweb_pgdata:/var/lib/postgresql/data
+      - ./database/init.sql:/docker-entrypoint-initdb.d/01_init.sql:ro
+      - ./database/seed.sql:/docker-entrypoint-initdb.d/02_seed.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-aquaweb} -d ${POSTGRES_DB:-aquaweb_iot}"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  mosquitto:
+    image: eclipse-mosquitto:2
+    container_name: aquaweb-mosquitto
+    restart: unless-stopped
+    profiles: ["local-mqtt", "full"]
+    ports:
+      - "${MOSQUITTO_PORT:-1883}:1883"
+      - "${MOSQUITTO_WS_PORT:-9001}:9001"
+    volumes:
+      - ./database/mosquitto.conf:/mosquitto/config/mosquitto.conf:ro
+
+  backend:
+    build:
+      context: .
+      dockerfile: backend/Dockerfile
+    container_name: aquaweb-backend
+    restart: unless-stopped
+    profiles: ["full"]
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: postgresql+psycopg://${POSTGRES_USER:-aquaweb}:${POSTGRES_PASSWORD:-aquaweb_secret_2026}@postgres:5432/${POSTGRES_DB:-aquaweb_iot}
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    volumes:
+      - ./backend/data:/app/backend/data
+
+volumes:
+  aquaweb_pgdata:

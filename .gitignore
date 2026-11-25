@@ -1,0 +1,36 @@
+# Entornos virtuales de Python
+.venv/
+venv/
+env/
+ENV/
+
+# Variables de entorno locales (no subir secretos)
+.env
+**/.env
+
+# Caché y compilados de Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+.pytest_cache/
+
+# Buffer local temporal
+**/buffer_pendiente.jsonl
+
+# Node / Vite / Frontend builds
+node_modules/
+dist/
+.vite/
+
+# Archivos temporales y del sistema operativo
+*.tmp
+*.bak
+*.swp
+*~
+.DS_Store
+Thumbs.db
+
+# Configuraciones locales de IDE
+.vscode/
+.idea/

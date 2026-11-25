@@ -1,0 +1,102 @@
+{
+  "version": 1,
+  "author": "AquaWeb IoT",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-esp32-devkit-c-v4",
+      "id": "esp",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "pot_ph",
+      "top": -50,
+      "left": -170,
+      "attrs": {
+        "value": "550"
+      }
+    },
+    {
+      "type": "wokwi-dht22",
+      "id": "dht_temp",
+      "top": -130,
+      "left": 180,
+      "attrs": {
+        "temperature": "26",
+        "humidity": "65"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_led_bomba",
+      "top": 70,
+      "left": 160,
+      "attrs": {
+        "value": "220"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_bomba",
+      "top": 10,
+      "left": 250,
+      "attrs": {
+        "color": "red",
+        "label": "Bomba / Aireador"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_led_estado",
+      "top": 140,
+      "left": 160,
+      "attrs": {
+        "value": "220"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_estado",
+      "top": 95,
+      "left": 250,
+      "attrs": {
+        "color": "blue",
+        "label": "Estado WiFi/MQTT"
+      }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn_emergencia",
+      "top": 200,
+      "left": 210,
+      "attrs": {
+        "color": "green",
+        "label": "Bypass Manual"
+      }
+    }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+    [ "pot_ph:GND", "esp:GND.1", "black", [ "v0" ] ],
+    [ "pot_ph:VCC", "esp:3V3", "red", [ "v0" ] ],
+    [ "pot_ph:SIG", "esp:34", "green", [ "h0" ] ],
+    [ "dht_temp:VCC", "esp:3V3", "red", [ "v0" ] ],
+    [ "dht_temp:GND", "esp:GND.3", "black", [ "v0" ] ],
+    [ "dht_temp:SDA", "esp:15", "blue", [ "h0" ] ],
+    [ "esp:2", "r_led_bomba:1", "orange", [ "h0" ] ],
+    [ "r_led_bomba:2", "led_bomba:A", "orange", [ "h0" ] ],
+    [ "led_bomba:C", "esp:GND.2", "black", [ "v0" ] ],
+    [ "esp:5", "r_led_estado:1", "cyan", [ "h0" ] ],
+    [ "r_led_estado:2", "led_estado:A", "cyan", [ "h0" ] ],
+    [ "led_estado:C", "esp:GND.2", "black", [ "v0" ] ],
+    [ "esp:3V3", "btn_emergencia:1.l", "red", [ "h0" ] ],
+    [ "btn_emergencia:2.l", "esp:4", "gold", [ "h0" ] ]
+  ],
+  "serialMonitor": {
+    "display": "always"
+  }
+}

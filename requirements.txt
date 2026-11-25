@@ -1,0 +1,7 @@
+# AquaWeb IoT - Avance 3 (Módulo de Comunicación MQTT)
+# Dependencias principales del backend Python
+paho-mqtt>=2.1.0
+
+# Dependencias opcionales para generación automática del informe DOCX y evidencias
+# python-docx>=1.1.0
+# Pillow>=10.0.0

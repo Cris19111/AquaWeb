@@ -1,0 +1,23 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+
+# Variables de entorno locales (no subir secretos)
+.env
+
+# Datos locales de buffer
+backend/data/*.jsonl
+
+# Frontend Node / Vite
+frontend/node_modules/
+frontend/dist/
+frontend/.vite/
+
+# Sistema operativo / IDE
+.DS_Store
+Thumbs.db
+.vscode/

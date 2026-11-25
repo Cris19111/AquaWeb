@@ -1,0 +1,51 @@
+@startuml
+top to bottom direction
+skinparam shadowing false
+skinparam roundcorner 8
+skinparam defaultFontName Arial
+skinparam defaultFontSize 14
+skinparam ArrowColor #1B4F72
+skinparam BorderColor #2E86C1
+skinparam nodesep 25
+skinparam ranksep 28
+
+title AquaWeb IoT (Avance 3) - Flujo de Datos y Comunicación MQTT
+
+package "1. Nodo Embebido ESP32 (Wokwi)" #EBF5FB {
+  [Sensores\npH (GPIO 34)\nDHT22 (GPIO 15)] as Sensores
+  [Firmware MicroPython\nmain.py + umqtt_simple.py\nIRQ GPIO 4 | Backoff 2..60s] as Firmware
+  [Actuadores\nBomba LED Rojo (GPIO 2)\nEstado LED Azul (GPIO 5)] as Actuadores
+  Sensores -right-> Firmware : Lectura\n5 s
+  Firmware -right-> Actuadores : Control\nAUTO/MANUAL
+}
+
+cloud "2. Broker MQTT Público (broker.hivemq.com:1883)" #FEF9E7 {
+  queue "utp/ds8/grupo/aquaweb/telemetria\n(JSON, QoS 0, retain=False)" as T_TEL
+  queue "utp/ds8/grupo/aquaweb/estado\n(ONLINE/OFFLINE LWT, QoS 1, retain=True)" as T_EST
+  queue "utp/ds8/grupo/aquaweb/ordenes\n(JSON control/umbrales, QoS 1/0, retain=False)" as T_ORD
+}
+
+package "3. Backend Python 3 (paho-mqtt >= 2.0)" #E8F8F5 {
+  [receptor_mqtt.py\nWildcard (#)\nValida JSON y rangos] as Receptor
+  [monitor_estado.py\nEvalúa cada 1 s\nONLINE / SIN_DATOS (>20s) / OFFLINE] as Monitor
+  [simulador_pruebas.py\nCLI de pruebas y órdenes] as Simulador
+}
+
+package "4. Persistencia CSV (backend/data/)" #F4ECF7 {
+  database "telemetria_valida.csv\nfecha_hora,ph,temperatura,actuador,modo" as CSV_TEL
+  database "eventos_comunicacion.csv\nfecha,tipo,gravedad,detalle" as CSV_EVT
+}
+
+Firmware --> T_TEL : Publica cada 5 s
+Firmware --> T_EST : ONLINE / OFFLINE (LWT)
+T_ORD --> Firmware : Órdenes (check_msg)
+
+T_TEL --> Receptor : Lectura en vivo
+T_TEL --> Monitor : Reinicia silencio
+T_EST --> Monitor : Estado conexión
+Simulador --> T_ORD : Órdenes CLI
+Simulador ..> T_TEL : Prueba inválidos
+
+Receptor --> CSV_TEL : Solo tramas válidas
+Monitor --> CSV_EVT : Solo cambios de estado
+@enduml

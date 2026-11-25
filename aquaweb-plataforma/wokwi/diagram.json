@@ -1,0 +1,98 @@
+{
+  "version": 1,
+  "author": "AquaWeb IoT — Plataforma Camaronera",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-esp32-devkit-c-v4",
+      "id": "esp",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "pot_ph",
+      "top": -110,
+      "left": -155,
+      "attrs": { "label": "pH (GPIO 34)" }
+    },
+    {
+      "type": "wokwi-potentiometer",
+      "id": "pot_ec",
+      "top": 40,
+      "left": -155,
+      "attrs": { "label": "EC/TDS/Sal (GPIO 35)" }
+    },
+    {
+      "type": "wokwi-dht22",
+      "id": "dht_temp",
+      "top": -115,
+      "left": 185,
+      "attrs": { "temperature": "27.4", "humidity": "78" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_bomba",
+      "top": 120,
+      "left": 215,
+      "attrs": { "color": "red", "label": "Bomba/Aireador (GPIO 2)" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_bomba",
+      "top": 185,
+      "left": 160,
+      "attrs": { "value": "220" }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led_estado",
+      "top": 10,
+      "left": 215,
+      "attrs": { "color": "blue", "label": "WiFi/MQTT (GPIO 5)" }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r_estado",
+      "top": 75,
+      "left": 160,
+      "attrs": { "value": "220" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn_bypass",
+      "top": 225,
+      "left": -95,
+      "attrs": { "color": "green", "label": "Bypass IRQ (GPIO 4)" }
+    }
+  ],
+  "connections": [
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ],
+
+    [ "pot_ph:VCC", "esp:3V3", "red", [ "v0" ] ],
+    [ "pot_ph:GND", "esp:GND.1", "black", [ "v0" ] ],
+    [ "pot_ph:SIG", "esp:34", "orange", [ "v0" ] ],
+
+    [ "pot_ec:VCC", "esp:3V3", "red", [ "v0" ] ],
+    [ "pot_ec:GND", "esp:GND.1", "black", [ "v0" ] ],
+    [ "pot_ec:SIG", "esp:35", "purple", [ "v0" ] ],
+
+    [ "dht_temp:VCC", "esp:3V3", "red", [ "v0" ] ],
+    [ "dht_temp:GND", "esp:GND.2", "black", [ "v0" ] ],
+    [ "dht_temp:SDA", "esp:15", "cyan", [ "v0" ] ],
+
+    [ "esp:2", "r_bomba:1", "red", [ "v0" ] ],
+    [ "r_bomba:2", "led_bomba:A", "red", [ "v0" ] ],
+    [ "led_bomba:C", "esp:GND.2", "black", [ "v0" ] ],
+
+    [ "esp:5", "r_estado:1", "blue", [ "v0" ] ],
+    [ "r_estado:2", "led_estado:A", "blue", [ "v0" ] ],
+    [ "led_estado:C", "esp:GND.2", "black", [ "v0" ] ],
+
+    [ "btn_bypass:1.l", "esp:3V3", "red", [ "v0" ] ],
+    [ "btn_bypass:2.l", "esp:4", "green", [ "v0" ] ]
+  ],
+  "dependencies": {}
+}
