@@ -43,7 +43,7 @@ class Settings(BaseSettings):
     )
 
     database_url: str = Field(
-        default="postgresql+psycopg://aquaweb:aquaweb_secret_2026@localhost:5432/aquaweb_iot"
+        default="postgresql+psycopg://aquaweb:aquaweb_secret_2026@localhost:5435/aquaweb_iot"
     )
     mqtt_broker_host: str = Field(default="broker.hivemq.com")
     mqtt_broker_port: int = Field(default=1883)

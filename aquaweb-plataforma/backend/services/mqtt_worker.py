@@ -30,6 +30,7 @@ class AquaWebMQTTWorker:
         self.connected = False
         self._stop_event = threading.Event()
         self._monitor_thread: threading.Thread | None = None
+        self._legacy_topic_devices: set[str] = {settings.mqtt_device_id}
 
         self.client = mqtt.Client(
             callback_api_version=mqtt.CallbackAPIVersion.VERSION2,
@@ -74,11 +75,14 @@ class AquaWebMQTTWorker:
         self.connected = False
         logger.warning("Desconectado del broker MQTT (%s). Reconexión automática activa.", reason_code)
 
-    def _parse_topic(self, topic: str) -> tuple[str, str] | None:
-        # Formato esperado: utp/ds8/<GRUPO>/aquaweb/<DEVICE_ID>/<canal>
+    def _parse_topic(self, topic: str) -> tuple[str, str, bool] | None:
+        # Soporta esquema plataforma: utp/ds8/<GRUPO>/aquaweb/<DEVICE_ID>/<canal>
+        # y esquema Avance 3: utp/ds8/<GRUPO>/aquaweb/<canal>
         parts = topic.split("/")
         if len(parts) >= 6 and parts[0] == "utp" and parts[3] == "aquaweb":
-            return parts[4], parts[5]
+            return parts[4], parts[5], False
+        if len(parts) == 5 and parts[0] == "utp" and parts[3] == "aquaweb":
+            return settings.mqtt_device_id, parts[4], True
         return None
 
     def _on_message(
@@ -90,7 +94,9 @@ class AquaWebMQTTWorker:
         parsed = self._parse_topic(msg.topic)
         if parsed is None:
             return
-        device_id, channel = parsed
+        device_id, channel, is_legacy = parsed
+        if is_legacy:
+            self._legacy_topic_devices.add(device_id)
         try:
             if channel == "telemetria":
                 self.processor.process_raw_telemetry(msg.topic, msg.payload, device_id)
@@ -102,11 +108,25 @@ class AquaWebMQTTWorker:
             logger.exception("Error inesperado procesando mensaje en %s: %s", msg.topic, err)
 
     def publish_command(self, device_id: str, payload: dict[str, Any]) -> bool:
-        """Publica una orden remota QoS 1 en .../ordenes."""
+        """Publica una orden remota QoS 1 en .../ordenes (plataforma y Avance 3)."""
         if not self.connected:
             return False
         topic = f"{settings.topic_prefix(device_id)}/ordenes"
         info = self.client.publish(topic, json.dumps(payload), qos=1, retain=False)
+        if device_id in self._legacy_topic_devices:
+            legacy_topic = f"utp/ds8/{settings.mqtt_grupo}/aquaweb/ordenes"
+            legacy_payload: dict[str, Any] = {}
+            if "modo" in payload:
+                legacy_payload["modo"] = payload["modo"]
+            if "actuador" in payload:
+                legacy_payload["actuador"] = payload["actuador"]
+            if "simular_silencio" in payload:
+                legacy_payload["simular_silencio"] = payload["simular_silencio"]
+            if payload.get("parametro") == "ph":
+                legacy_payload["umbral_ph_min"] = payload["min_optimo"]
+                legacy_payload["umbral_ph_max"] = payload["max_optimo"]
+            if legacy_payload:
+                self.client.publish(legacy_topic, json.dumps(legacy_payload), qos=1, retain=False)
         return info.rc == mqtt.MQTT_ERR_SUCCESS
 
     def _monitor_loop(self) -> None:

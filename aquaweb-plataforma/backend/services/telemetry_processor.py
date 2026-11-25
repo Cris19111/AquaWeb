@@ -138,6 +138,18 @@ class TelemetryProcessor:
         if not isinstance(raw_obj, dict):
             return None, f"El payload debe ser un objeto JSON, recibido {type(raw_obj).__name__}."
 
+        # Compatibilidad con el firmware del Avance 3 (temperatura, actuador, modo)
+        if "temperatura_c" not in raw_obj and "temperatura" in raw_obj:
+            raw_obj = dict(raw_obj)
+            raw_obj["temperatura_c"] = raw_obj["temperatura"]
+            if "actuador_estado" not in raw_obj and "actuador" in raw_obj:
+                raw_obj["actuador_estado"] = raw_obj["actuador"]
+            if "modo_operacion" not in raw_obj and "modo" in raw_obj:
+                raw_obj["modo_operacion"] = raw_obj["modo"]
+            raw_obj.setdefault("ec_ppm", 21500.0)
+            raw_obj.setdefault("tds_ppm", 10320.0)
+            raw_obj.setdefault("salinidad_ppm", 13975.0)
+
         try:
             validated = TelemetryPayloadIn.model_validate(raw_obj)
             return validated, None
